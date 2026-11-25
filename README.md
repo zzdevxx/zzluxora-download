@@ -10,7 +10,7 @@ Portal unduhan resmi, simulator browser Audio-Mood ke DMX512, dan pusat navigasi
 
 | Komponen | Repositori | Peran |
 |---|---|---|
-| Software Konsol | [`zzdevxx/zzluxora`](https://github.com/zzdevxx/zzluxora) | Konsol desktop PySide6 + NumPy STFT/MIR, Art-Net 4 UDP :6454 (197 test) |
+| Software Konsol | [`zzdevxx/zzluxora`](https://github.com/zzdevxx/zzluxora) | Konsol desktop PySide6 + NumPy STFT/MIR, Art-Net 4 UDP :6454 (206 test terkoleksi, 1 skipped) |
 | Hardware Node | [`zzdevxx/esp32-artnet-dmx`](https://github.com/zzdevxx/esp32-artnet-dmx) | Firmware ESP32 + MAX485 + LCD 16x2 I2C (v5.2.0, 43.07 FPS nominal) |
 | Profil Fixture | [`zzdevxx/zz-fixture`](https://github.com/zzdevxx/zz-fixture) | 5 profil fixture `.qxf` QLC+ v4.14.4 (`zzdree-36X`, `Alien-AL36`, `Illumsolid-YSP01`, `Kumastb-STL47`, `Wisdom-54X3`) |
 | Naskah & Riset | [`zzdevxx/zzluxora-thesis`](https://github.com/zzdevxx/zzluxora-thesis) | Skripsi S1 Teknik Komputer FT UNNES, pemodelan matematis & uji panggung |

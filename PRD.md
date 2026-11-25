@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): ZZLUXORA Download Portal
 
 **Project**: zzluxora-download
-**Version**: 10.0.0
+**Version**: 10.1.0
 **Status**: Approved
 **Created**: 2026-11-26
 **Last Updated**: 2026-11-26
@@ -10,7 +10,7 @@
 ---
 
 ## 1. Executive Summary
-`zzluxora-download` adalah portal unduhan resmi, simulator browser Russell 2D HSV-RGBW/DMX512, serta pusat navigasi ekosistem 4 repositori ZZLUXORA (`zzluxora`, `esp32-artnet-dmx`, `zz-fixture`, dan `zzluxora-thesis`). Portal ini memberi akses satu halaman bagi operator panggung, teknisi gereja, dan penguji skripsi untuk mengunduh installer Windows (`ZZLUXORA-Setup-10.0.0.exe`), mengeksplorasi model komputasi audio-ke-DMX secara langsung di browser, dan menelusuri komponen hardware serta profil fixture.
+`zzluxora-download` adalah portal unduhan resmi, simulator browser Russell 2D HSV-RGBW/DMX512, serta pusat navigasi ekosistem 4 repositori ZZLUXORA (`zzluxora`, `esp32-artnet-dmx`, `zz-fixture`, dan `zzluxora-thesis`). Portal ini memberi akses satu halaman bagi operator panggung, teknisi gereja, dan penguji skripsi untuk mengunduh installer Windows (`ZZLUXORA-Setup-10.1.0.exe`), mengeksplorasi model komputasi audio-ke-DMX secara langsung di browser, dan menelusuri komponen hardware serta profil fixture.
 
 ## 2. Problem Statement
 **Problem**: Sebelumnya `zzluxora-v10` tidak memiliki portal distribusi web publik maupun installer siap pakai seperti `banklycs-download`, sehingga calon pengguna hanya melihat repositori kode Python mentah dan tidak langsung melihat keterhubungan antara konsol desktop, firmware node ESP32 (`v5.2.0`), profil fixture `.qxf` (`zz-fixture`), dan naskah skripsi.
@@ -30,13 +30,13 @@
 | Kepatuhan Antislop & A11Y | Kontras WCAG 2.2 AA, 0 horizontal overflow, 0 em dash | 0 error di 1440/1024/768/390/320 px |
 
 ## 4. Feature Requirements
-### MVP Features (v10.0)
-- **Live Release Metadata Sync**: Membaca `release_manifest.json` dari `zzdevxx/zzluxora` dan GitHub API `/releases/latest` secara non-blocking dengan fallback statis terverifikasi (`v10.0`, `10.0.0`, ukuran aktual installer).
+### MVP Features (v10.1)
+- **Live Release Metadata Sync**: Membaca GitHub API `/releases/latest` secara non-blocking dengan fallback statis terverifikasi (`v10.1`, `10.1.0`, ukuran aktual installer).
 - **Interactive Stage Console Simulator (The Obsidian Control Deck)**:
   - Input kontrol Russell 2D Plane (`Valence` [-1..1], `Arousal` [-1..1], `RMS Energy` [0..1], `Master Dimmer` [0..1], serta quick-preset segmen Praise / Worship / Neutral / Strobe / Blackout).
   - Visualisasi langsung 4-unit PAR LED stage rig (`zzdree 36X` 3CH RGB, `Alien AL36` 8CH RGB, `Kumastb STL47` 8CH RGBW, `Illumsolid YSP01` 8CH RGBW, `Wisdom 54X3` 8CH RGB) lengkap dengan tabel kanal DMX512 byte-per-byte (`tabular-nums`).
-- **Ekosistem 4 Repo Terhubung**: Peta peran, spesifikasi teknis terukur (197 unit test, 43.07 FPS nominal DMX / 23220 us, 5 profil `.qxf`, 7 file firmware byte-identik SHA-256 `817c30a3...`), dan tautan cepat ke 4 repo.
-- **Panduan Instalasi & Setup Art-Net**: 3 langkah instalasi Windows (`ZZLUXORA-Setup-10.0.0.exe`, per-user tanpa UAC) dan alur koneksi ke node `esp32-artnet-dmx` (`ARTNET-DMX` AP / `zzlight.local` / UDP `6454`).
+- **Ekosistem 4 Repo Terhubung**: Peta peran, hasil suite 206 test terkoleksi dengan 205 pass dan 1 skip, 43.07 FPS nominal DMX / 23220 us, 5 profil `.qxf`, 7 file firmware byte-identik SHA-256, dan tautan cepat ke 4 repo.
+- **Panduan Instalasi & Setup Art-Net**: 3 langkah instalasi Windows (`ZZLUXORA-Setup-10.1.0.exe`, per-user tanpa UAC) dan alur koneksi ke node `esp32-artnet-dmx` (`ARTNET-DMX` AP / `zzlight.local` / UDP `6454`).
 - **Legal & Privacy Trio**: Portal murni statis tanpa akun/cookie pelacak/pengumpulan data; footer & halaman hukum terhubung langsung ke `/privacy`, `/terms`, dan `/data-deletion` di hub `zzdree.my.id` (mematuhi UU PDP No. 27/2022 & GDPR Art. 17).
 
 ## 5. Data & Manifest Contract (JSON, Zero Database)
@@ -45,13 +45,13 @@ Portal tidak menggunakan database backend. Sinkronisasi rilis mengikuti skema `r
 ```json
 {
   "app": "ZZLUXORA",
-  "version": "10.0.0",
-  "tag": "v10.0",
-  "installer_name": "ZZLUXORA-Setup-10.0.0.exe",
-  "installer_size": 0,
-  "installer_sha256": "<sha256>",
-  "download_url": "https://github.com/zzdevxx/zzluxora/releases/download/v10.0/ZZLUXORA-Setup-10.0.0.exe",
-  "released_at": "2026-11-26T00:00:00Z"
+  "version": "10.1.0",
+  "tag": "v10.1",
+  "installer_name": "ZZLUXORA-Setup-10.1.0.exe",
+  "installer_size": 80544241,
+  "installer_sha256": "03fdef2953395d1713a3b0c45b6d186b91342693981565dce67ad474611f3508",
+  "download_url": "https://github.com/zzdevxx/zzluxora/releases/download/v10.1/ZZLUXORA-Setup-10.1.0.exe",
+  "released_at": "2026-11-25T21:54:51Z"
 }
 ```
 

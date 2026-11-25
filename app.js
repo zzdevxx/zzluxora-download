@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  // Exact fixture definitions from zzdevxx/zz-fixture and zzluxora/fixtures/*.zfx
   const FIXTURES = {
     'zzdree-36X': {
       name: 'zzdree-36X',
@@ -36,10 +35,10 @@
   };
 
   const PRESETS = {
-    praise:  { valence: 65,  arousal: 72,  rms: 85, master: 100 },
-    worship: { valence: -35, arousal: -58, rms: 48, master: 85  },
-    bridge:  { valence: 25,  arousal: 88,  rms: 94, master: 100 },
-    altar:   { valence: 12,  arousal: -20, rms: 62, master: 90  }
+    praise: { valence: 65, arousal: 72, rms: 85, master: 100 },
+    worship: { valence: -35, arousal: -58, rms: 48, master: 85 },
+    bridge: { valence: 25, arousal: 88, rms: 94, master: 100 },
+    altar: { valence: 12, arousal: -20, rms: 62, master: 90 }
   };
 
   const state = {
@@ -49,7 +48,7 @@
     valence: 0.65,
     arousal: 0.72,
     rms: 0.82,
-    master: 1.0,
+    master: 1,
     toastTimer: null
   };
 
@@ -69,47 +68,74 @@
     outCoord: document.getElementById('out-va-coord'),
     outChSum: document.getElementById('out-channel-summary'),
     cursor: document.getElementById('va-cursor'),
+    heroCursor: document.getElementById('hero-va-cursor'),
+    heroVa: document.getElementById('hero-va'),
+    heroSwatch: document.getElementById('hero-swatch'),
+    heroHsv: document.getElementById('hero-hsv'),
+    heroRgbw: document.getElementById('hero-rgbw'),
+    heroMode: document.getElementById('hero-mode'),
     parRig: document.getElementById('par-rig'),
     dmxGrid: document.getElementById('dmx-channels'),
     playBtn: document.getElementById('sim-play-btn'),
     blackoutBtn: document.getElementById('sim-blackout-btn'),
     artnetBadge: document.getElementById('sim-artnet-badge'),
     presetBtns: document.querySelectorAll('.preset-btn'),
-    toast: document.getElementById('toast')
+    toast: document.getElementById('toast'),
+    copyFallback: document.getElementById('copy-fallback')
   };
 
-  // Mirrors core/color_engine.py: emotion_to_hsv -> hsv_to_rgb -> rgb_to_physical_rgbw
-  function computeRgbw(v, a, rms, master) {
-    const theta = Math.atan2(a, v);
-    let hueDeg = (theta * 180) / Math.PI;
-    if (hueDeg < 0) hueDeg += 360;
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 
-    const dist = Math.sqrt(v * v + a * a);
-    const sat = Math.max(0.2, Math.min(1.0, dist / Math.SQRT2));
-    const val = Math.max(0.0, Math.min(1.0, rms * master));
+  function computeRgbw(v, a, rms, master) {
+    const emotionV = clamp(v, -1, 1);
+    const emotionA = clamp(a, -1, 1);
+    const theta = Math.atan2(emotionA, emotionV);
+    const hueDeg = ((theta * 180) / Math.PI + 360) % 360;
+    const dist = Math.sqrt(emotionV * emotionV + emotionA * emotionA);
+    const sat = clamp(dist / Math.SQRT2, 0.2, 1);
+    const val = clamp(clamp(rms, 0, 1) * clamp(master, 0, 1), 0, 1);
 
     const c = val * sat;
-    const x = c * (1.0 - Math.abs(((hueDeg / 60.0) % 2.0) - 1.0));
+    const x = c * (1 - Math.abs(((hueDeg / 60) % 2) - 1));
     const m = val - c;
+    let rp = 0;
+    let gp = 0;
+    let bp = 0;
 
-    let rp = 0, gp = 0, bp = 0;
-    if (hueDeg < 60)       { rp = c; gp = x; bp = 0; }
-    else if (hueDeg < 120) { rp = x; gp = c; bp = 0; }
-    else if (hueDeg < 180) { rp = 0; gp = c; bp = x; }
-    else if (hueDeg < 240) { rp = 0; gp = x; bp = c; }
-    else if (hueDeg < 300) { rp = x; gp = 0; bp = c; }
-    else                   { rp = c; gp = 0; bp = x; }
+    if (hueDeg < 60) {
+      rp = c;
+      gp = x;
+    } else if (hueDeg < 120) {
+      rp = x;
+      gp = c;
+    } else if (hueDeg < 180) {
+      gp = c;
+      bp = x;
+    } else if (hueDeg < 240) {
+      gp = x;
+      bp = c;
+    } else if (hueDeg < 300) {
+      rp = x;
+      bp = c;
+    } else {
+      rp = c;
+      bp = x;
+    }
 
-    const r = Math.max(0, Math.min(255, Math.round((rp + m) * 255)));
-    const g = Math.max(0, Math.min(255, Math.round((gp + m) * 255)));
-    const b = Math.max(0, Math.min(255, Math.round((bp + m) * 255)));
-
+    const r = clamp(Math.round((rp + m) * 255), 0, 255);
+    const g = clamp(Math.round((gp + m) * 255), 0, 255);
+    const b = clamp(Math.round((bp + m) * 255), 0, 255);
     const w = Math.min(r, g, b);
+
     return {
       hueDeg: Math.round(hueDeg),
       satPct: Math.round(sat * 100),
       valPct: Math.round(val * 100),
-      r, g, b,
+      r,
+      g,
+      b,
       rp: r - w,
       gp: g - w,
       bp: b - w,
@@ -118,15 +144,19 @@
   }
 
   function quadrantLabel(v, a) {
-    if (Math.abs(v) < 0.08 && Math.abs(a) < 0.08) return 'Center (Neutral)';
-    if (v >= 0 && a >= 0) return 'Q1 (Praise / Joyful)';
-    if (v < 0 && a >= 0) return 'Q2 (Dynamic / Intense)';
-    if (v < 0 && a < 0) return 'Q3 (Deep Worship)';
-    return 'Q4 (Calm / Contemplative)';
+    if (Math.abs(v) < 0.08 && Math.abs(a) < 0.08) return 'Titik netral';
+    if (v >= 0 && a >= 0) return 'Q1 (Praise / Sukacita)';
+    if (v < 0 && a >= 0) return 'Q2 (Dinamis / Tegang)';
+    if (v < 0 && a < 0) return 'Q3 (Worship mendalam)';
+    return 'Q4 (Tenang / Reflektif)';
   }
 
-  function formatSigned(num) {
-    return (num >= 0 ? '+' : '') + num.toFixed(2);
+  function formatSigned(value) {
+    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}`;
+  }
+
+  function formatBytes(value) {
+    return `${new Intl.NumberFormat('id-ID').format(value)} byte`;
   }
 
   function buildDmxBytes(fixture, rgbw) {
@@ -146,10 +176,12 @@
 
   function render() {
     const fixture = FIXTURES[state.fixtureKey] || FIXTURES['Kumastb-STL47'];
-    const colorMaster = fixture.hasDimmer ? 1.0 : state.master;
+    const colorMaster = fixture.hasDimmer ? 1 : state.master;
     const rgbw = computeRgbw(state.valence, state.arousal, state.rms, colorMaster);
     const visualRgbw = computeRgbw(state.valence, state.arousal, state.rms, state.master);
     const bytes = buildDmxBytes(fixture, rgbw);
+    const isLive = state.play && !state.blackout;
+    const visualColor = isLive ? `rgb(${visualRgbw.r}, ${visualRgbw.g}, ${visualRgbw.b})` : 'rgb(28, 30, 31)';
 
     if (el.valValence) el.valValence.textContent = formatSigned(state.valence);
     if (el.valArousal) el.valArousal.textContent = formatSigned(state.arousal);
@@ -160,26 +192,31 @@
     if (el.outHsv) el.outHsv.textContent = `${visualRgbw.hueDeg} deg / ${visualRgbw.satPct}% / ${visualRgbw.valPct}%`;
     if (el.outRgbw) el.outRgbw.textContent = `R:${rgbw.rp} G:${rgbw.gp} B:${rgbw.bp} W:${rgbw.w}`;
     if (el.outCoord) el.outCoord.textContent = `(${formatSigned(state.valence)}, ${formatSigned(state.arousal)})`;
-    if (el.outChSum) el.outChSum.textContent = `${fixture.channels.length} CHANNELS (${fixture.name})`;
+    if (el.outChSum) el.outChSum.textContent = `${fixture.channels.length} KANAL / ${fixture.name}`;
 
-    if (el.cursor) {
-      const leftPct = 50 + state.valence * 44;
-      const topPct = 50 - state.arousal * 44;
-      el.cursor.style.left = `${leftPct}%`;
-      el.cursor.style.top = `${topPct}%`;
-      el.cursor.style.backgroundColor = `rgb(${visualRgbw.r}, ${visualRgbw.g}, ${visualRgbw.b})`;
-    }
+    [el.cursor, el.heroCursor].forEach((cursor) => {
+      if (!cursor) return;
+      cursor.style.left = `${50 + state.valence * 44}%`;
+      cursor.style.top = `${50 - state.arousal * 44}%`;
+      cursor.style.backgroundColor = visualColor;
+    });
+
+    if (el.heroVa) el.heroVa.textContent = `V ${formatSigned(state.valence)} / A ${formatSigned(state.arousal)}`;
+    if (el.heroHsv) el.heroHsv.textContent = `${visualRgbw.hueDeg} deg / ${visualRgbw.satPct}% / ${visualRgbw.valPct}%`;
+    if (el.heroRgbw) el.heroRgbw.textContent = `R:${rgbw.rp} G:${rgbw.gp} B:${rgbw.bp} W:${rgbw.w}`;
+    if (el.heroSwatch) el.heroSwatch.style.backgroundColor = visualColor;
+    if (el.heroMode) el.heroMode.textContent = state.blackout ? 'BLACKOUT SIMULASI' : state.play ? 'SIMULASI AKTIF' : 'SIMULASI DIJEDA';
 
     if (el.artnetBadge) {
       el.artnetBadge.classList.remove('is-gated', 'is-blackout');
       if (state.blackout) {
-        el.artnetBadge.textContent = 'BLACKOUT ACTIVE (ALL CH 000)';
+        el.artnetBadge.textContent = 'BLACKOUT SIMULASI / TANPA UDP';
         el.artnetBadge.classList.add('is-blackout');
       } else if (!state.play) {
-        el.artnetBadge.textContent = 'PLAY-GATED (UDP PAUSED)';
+        el.artnetBadge.textContent = 'SIMULASI DIJEDA / TANPA UDP';
         el.artnetBadge.classList.add('is-gated');
       } else {
-        el.artnetBadge.textContent = 'ART-NET UDP :6454 STREAMING';
+        el.artnetBadge.textContent = 'SIMULASI BROWSER / TANPA UDP';
       }
     }
 
@@ -194,78 +231,121 @@
     }
 
     if (el.parRig) {
-      const lenses = el.parRig.querySelectorAll('.par-lens');
-      const liveColor = (state.blackout || !state.play)
-        ? 'rgb(20, 22, 26)'
-        : `rgb(${visualRgbw.r}, ${visualRgbw.g}, ${visualRgbw.b})`;
-      lenses.forEach((lens) => {
-        lens.style.backgroundColor = liveColor;
+      el.parRig.querySelectorAll('.par-lens').forEach((lens) => {
+        lens.style.backgroundColor = visualColor;
       });
     }
 
     if (el.dmxGrid) {
-      el.dmxGrid.innerHTML = '';
-      fixture.channels.forEach((role, idx) => {
-        const val = bytes[idx] || 0;
+      el.dmxGrid.replaceChildren();
+      fixture.channels.forEach((role, index) => {
+        const value = bytes[index] || 0;
         const cell = document.createElement('div');
         cell.className = 'dmx-cell';
-        const pct = Math.round((val / 255) * 100);
+        const percent = Math.round((value / 255) * 100);
         cell.innerHTML = `
-          <span class="dmx-ch">CH ${idx + 1}</span>
-          <span class="dmx-role">${role}</span>
-          <span class="dmx-val tabular-num">${String(val).padStart(3, '0')}</span>
-          <span class="dmx-bar"><span class="dmx-bar-fill" style="width:${pct}%"></span></span>
+          <span class="dmx-ch mono tabular-num">CH ${index + 1}</span>
+          <span class="dmx-role mono">${role}</span>
+          <span class="dmx-val mono tabular-num">${String(value).padStart(3, '0')}</span>
+          <span class="dmx-bar" aria-hidden="true"><span class="dmx-bar-fill" style="width:${percent}%"></span></span>
         `;
         el.dmxGrid.appendChild(cell);
       });
     }
   }
 
-  function showToast(msg) {
+  function showToast(message) {
     if (!el.toast) return;
-    el.toast.textContent = msg;
+    el.toast.textContent = message;
     el.toast.hidden = false;
     if (state.toastTimer) clearTimeout(state.toastTimer);
     state.toastTimer = setTimeout(() => {
       el.toast.hidden = true;
-    }, 2400);
+    }, 2600);
   }
 
   function applyPreset(name) {
-    const p = PRESETS[name];
-    if (!p) return;
+    const preset = PRESETS[name];
+    if (!preset) return;
     state.blackout = false;
-    if (el.valence) { el.valence.value = p.valence; state.valence = p.valence / 100; }
-    if (el.arousal) { el.arousal.value = p.arousal; state.arousal = p.arousal / 100; }
-    if (el.rms) { el.rms.value = p.rms; state.rms = p.rms / 100; }
-    if (el.master) { el.master.value = p.master; state.master = p.master / 100; }
-    el.presetBtns.forEach((b) => b.classList.toggle('active', b.dataset.preset === name));
+    if (el.valence) {
+      el.valence.value = preset.valence;
+      state.valence = preset.valence / 100;
+    }
+    if (el.arousal) {
+      el.arousal.value = preset.arousal;
+      state.arousal = preset.arousal / 100;
+    }
+    if (el.rms) {
+      el.rms.value = preset.rms;
+      state.rms = preset.rms / 100;
+    }
+    if (el.master) {
+      el.master.value = preset.master;
+      state.master = preset.master / 100;
+    }
+    el.presetBtns.forEach((button) => {
+      const active = button.dataset.preset === name;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
     render();
+  }
+
+  async function copyWithFallback(text) {
+    let clipboardFailed = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        clipboardFailed = true;
+      }
+    } else {
+      clipboardFailed = true;
+    }
+
+    if (!el.copyFallback || !clipboardFailed) {
+      showToast('Clipboard tidak tersedia. Pilih teks secara manual untuk disalin.');
+      return false;
+    }
+
+    el.copyFallback.hidden = false;
+    el.copyFallback.value = text;
+    el.copyFallback.focus();
+    el.copyFallback.select();
+    showToast('Clipboard tidak tersedia. Teks dipilih di kotak cadangan, salin manual dengan Ctrl+C.');
+    return false;
   }
 
   function setupEvents() {
     if (el.fixture) {
-      el.fixture.addEventListener('change', (e) => {
-        state.fixtureKey = e.target.value;
+      el.fixture.addEventListener('change', (event) => {
+        state.fixtureKey = event.target.value;
         render();
       });
     }
+
     const bindSlider = (input, setter) => {
       if (!input) return;
-      input.addEventListener('input', (e) => {
+      input.addEventListener('input', (event) => {
         state.blackout = false;
-        el.presetBtns.forEach((b) => b.classList.remove('active'));
-        setter(parseFloat(e.target.value) / 100);
+        el.presetBtns.forEach((button) => {
+          button.classList.remove('active');
+          button.setAttribute('aria-pressed', 'false');
+        });
+        setter(parseFloat(event.target.value) / 100);
         render();
       });
     };
-    bindSlider(el.valence, (v) => { state.valence = v; });
-    bindSlider(el.arousal, (v) => { state.arousal = v; });
-    bindSlider(el.rms, (v) => { state.rms = v; });
-    bindSlider(el.master, (v) => { state.master = v; });
 
-    el.presetBtns.forEach((btn) => {
-      btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+    bindSlider(el.valence, (value) => { state.valence = value; });
+    bindSlider(el.arousal, (value) => { state.arousal = value; });
+    bindSlider(el.rms, (value) => { state.rms = value; });
+    bindSlider(el.master, (value) => { state.master = value; });
+
+    el.presetBtns.forEach((button) => {
+      button.addEventListener('click', () => applyPreset(button.dataset.preset));
     });
 
     if (el.playBtn) {
@@ -274,6 +354,7 @@
         render();
       });
     }
+
     if (el.blackoutBtn) {
       el.blackoutBtn.addEventListener('click', () => {
         state.blackout = !state.blackout;
@@ -281,98 +362,105 @@
       });
     }
 
-    document.querySelectorAll('.btn-copy').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const text = btn.dataset.copy;
+    document.querySelectorAll('.btn-copy').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const text = button.dataset.copy;
         if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-          showToast(`Disalin: ${text}`);
-        }).catch(() => {
-          showToast('Gagal menyalin ke clipboard.');
-        });
+        const copied = await copyWithFallback(text);
+        if (copied) showToast(`Disalin: ${text}`);
       });
     });
 
-    document.querySelectorAll('.faq-q').forEach((q) => {
-      q.addEventListener('click', () => {
-        const expanded = q.getAttribute('aria-expanded') === 'true';
+    document.querySelectorAll('.faq-q').forEach((question) => {
+      question.addEventListener('click', () => {
+        const expanded = question.getAttribute('aria-expanded') === 'true';
         document.querySelectorAll('.faq-q').forEach((item) => item.setAttribute('aria-expanded', 'false'));
-        q.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        question.setAttribute('aria-expanded', expanded ? 'false' : 'true');
       });
     });
   }
 
-  // Non-blocking sync with zzluxora release_manifest.json and GitHub latest release
-  async function syncReleaseMetadata() {
-    const fetchJson = async (url) => {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 4000);
-      try {
-        const res = await fetch(url, { signal: ctrl.signal });
-        if (!res.ok) return null;
-        return await res.json();
-      } catch {
-        return null;
-      } finally {
-        clearTimeout(timer);
-      }
-    };
+  function applyRelease(result) {
+    const release = result.release;
+    const status = document.getElementById('dl-status');
+    const source = document.getElementById('dl-source');
 
-    const [localManifest, remoteManifest, release] = await Promise.all([
-      fetchJson('./release_manifest.json'),
-      fetchJson('https://raw.githubusercontent.com/zzdevxx/zzluxora/main/release_manifest.json'),
-      fetchJson('https://api.github.com/repos/zzdevxx/zzluxora/releases/latest')
-    ]);
-    const manifest = localManifest || remoteManifest;
+    if (status) status.textContent = result.message;
+    if (source && !release) {
+      source.textContent = 'Sumber: menunggu metadata';
+      return;
+    }
+    if (!release) return;
+
+    const sourceLabel = result.status === 'loading'
+      ? 'Sumber: menunggu metadata'
+      : result.source === 'fallback'
+        ? 'Sumber: snapshot rilis publik terverifikasi'
+        : result.verified
+          ? 'Sumber: GitHub API dan portal, checksum cocok'
+          : 'Sumber: GitHub API, checksum belum cocok dengan snapshot';
+
+    if (source) source.textContent = sourceLabel;
 
     const badge = document.getElementById('hero-version-badge');
-    const telVer = document.getElementById('telemetry-version');
-    const dlTag = document.getElementById('dl-version-tag');
-    const dlExeName = document.getElementById('dl-exe-name');
-    const dlExeSize = document.getElementById('dl-exe-size');
-    const dlDate = document.getElementById('dl-release-date');
-    const dlBtn = document.getElementById('dl-installer-btn');
-    const guideExe = document.getElementById('guide-exe-name');
+    const telemetry = document.getElementById('telemetry-version');
+    const tag = document.getElementById('dl-version-tag');
+    const asset = document.getElementById('dl-exe-name');
+    const size = document.getElementById('dl-exe-size');
+    const releaseDate = document.getElementById('dl-release-date');
+    const sha = document.getElementById('dl-sha256');
+    const releaseLink = document.getElementById('dl-installer-btn');
+    const directLink = document.getElementById('dl-installer-direct');
+    const guide = document.getElementById('guide-exe-name');
 
-    if (manifest && manifest.version) {
-      if (badge) badge.textContent = `Rilis Aktif: v${manifest.version} | Art-Net 4 DMX512`;
-      if (telVer) telVer.textContent = `v${manifest.version}`;
-      if (dlTag && manifest.tag) dlTag.textContent = manifest.tag;
-      if (dlExeName && manifest.installer_name) dlExeName.textContent = `Berkas: ${manifest.installer_name}`;
-      if (guideExe && manifest.installer_name) guideExe.textContent = manifest.installer_name;
-      const sizeBytes = typeof manifest.installer_size_bytes === 'number'
-        ? manifest.installer_size_bytes
-        : manifest.installer_size;
-      if (dlExeSize && typeof sizeBytes === 'number' && sizeBytes > 0) {
-        const mb = (sizeBytes / (1024 * 1024)).toFixed(1);
-        dlExeSize.textContent = `Ukuran: ${mb} MB (Setup)`;
-      }
-      if (dlDate && manifest.released_at) {
-        dlDate.textContent = `Rilis: ${manifest.released_at.slice(0, 10)}`;
-      }
-      if (dlBtn && typeof manifest.download_url === 'string' && manifest.download_url.startsWith('https://')) {
-        dlBtn.href = manifest.download_url;
-      }
-    }
+    if (badge) badge.textContent = `Rilis publik: ${release.tag} | Art-Net 4 DMX512`;
+    if (telemetry) telemetry.textContent = `v${release.version}`;
+    if (tag) tag.textContent = release.tag;
+    if (asset) asset.textContent = release.asset;
+    if (size) size.textContent = formatBytes(release.size);
+    if (releaseDate) releaseDate.textContent = `${release.tag} / ${release.version}`;
+    if (sha) sha.textContent = release.sha256;
+    if (releaseLink) releaseLink.href = release.githubRelease;
+    if (directLink) directLink.href = release.direct;
+    if (guide) guide.textContent = release.asset;
+  }
 
-    if (release && release.tag_name && Array.isArray(release.assets)) {
-      const exeAsset = release.assets.find((a) => typeof a.name === 'string' && a.name.toLowerCase().endsWith('.exe'));
-      if (exeAsset) {
-        if (dlTag) dlTag.textContent = release.tag_name;
-        if (dlExeName && exeAsset.name) dlExeName.textContent = `Berkas: ${exeAsset.name}`;
-        if (guideExe && exeAsset.name) guideExe.textContent = exeAsset.name;
-        if (dlExeSize && typeof exeAsset.size === 'number') {
-          dlExeSize.textContent = `Ukuran: ${(exeAsset.size / (1024 * 1024)).toFixed(1)} MB (Setup)`;
-        }
-        if (dlBtn && exeAsset.browser_download_url) dlBtn.href = exeAsset.browser_download_url;
-      }
+  async function fetchJson(url) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
     }
+  }
+
+  function initRelease() {
+    const contract = window.ReleaseContract;
+    if (!contract) {
+      applyRelease({
+        status: 'fallback',
+        source: 'fallback',
+        verified: false,
+        message: 'Kontrak metadata tidak dimuat. Nilai statis pada halaman tetap ditampilkan.'
+      });
+      return;
+    }
+    contract.createReleaseController('zzluxora', {
+      fetchJson,
+      apply: applyRelease
+    }).load();
   }
 
   function init() {
     setupEvents();
     render();
-    syncReleaseMetadata();
+    initRelease();
   }
 
   if (document.readyState === 'loading') {
