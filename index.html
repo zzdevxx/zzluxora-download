@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZZLUXORA: Konsol Stage Lighting Audio-Reactive &amp; Art-Net DMX512</title>
+  <meta name="description" content="Portal unduhan resmi ZZLUXORA v10.0: konsol pencahayaan panggung audio-reactive dengan analisis STFT NumPy, pemetaan Russell 2D HSV-RGBW, dan transmisi Art-Net DMX512 ke node ESP32.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%2307080a' stroke='%234a5264' stroke-width='4'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='44' font-weight='900' font-style='italic' fill='%23ffffff'>ZZ</text></svg>">
+  <link rel="canonical" href="https://zzdree.my.id/zzluxora/">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#hero" class="brand-link" aria-label="ZZLUXORA Beranda">
+        <span class="brand-mark" aria-hidden="true">ZZ</span>
+        <span class="brand-meta">
+          <span class="brand-title">ZZLUXORA</span>
+          <span class="brand-sub">Stage Lighting Console</span>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="Navigasi Utama">
+        <a href="#features" class="nav-link">Arsitektur</a>
+        <a href="#simulator" class="nav-link">Simulator RGBW</a>
+        <a href="#ecosystem" class="nav-link">4 Repo Ekosistem</a>
+        <a href="#download" class="nav-link">Download</a>
+        <a href="#setup" class="nav-link">Panduan Setup</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="https://zzdree.my.id/" class="btn btn-ghost btn-sm">zzdree.my.id</a>
+        <a href="https://github.com/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">GitHub</a>
+        <a href="#download" class="btn btn-primary btn-sm">Unduh v10.0</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" tabindex="-1">
+    <section id="hero" class="section hero-section">
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="status-pill" role="status">
+              <span class="led-dot" aria-hidden="true"></span>
+              <span id="hero-version-badge" class="tabular-num">Rilis Aktif: v10.0.0 | Art-Net 4 DMX512</span>
+            </div>
+
+            <h1 class="hero-title">
+              Konsol Pencahayaan Panggung Audio-Reactive untuk Ibadah &amp; Konser
+            </h1>
+
+            <p class="hero-lead">
+              Menerjemahkan sinyal audio lagu secara realtime melalui STFT Hann dan model afektif 2D Russell menjadi warna HSV-RGBW serta frame Art-Net UDP (port 6454) ke mikrokontroler ESP32 DMX512, tanpa bergantung pada koneksi internet saat panggung berjalan.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#download" class="btn btn-primary btn-lg">Unduh Installer Windows</a>
+              <a href="#simulator" class="btn btn-secondary btn-lg">Coba Simulator DMX</a>
+            </div>
+          </div>
+
+          <div class="telemetry-panel">
+            <div class="panel-head">
+              <span class="panel-title">CONSOLE TELEMETRY</span>
+              <span class="tag-amber tabular-num" id="telemetry-version">v10.0.0</span>
+            </div>
+            <div class="metrics-grid">
+              <div class="metric-cell">
+                <span class="metric-val tabular-num">43.07 FPS</span>
+                <span class="metric-lbl">Laju Analisis STFT (N=2048, H=512)</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-val tabular-num">513 Fader</span>
+                <span class="metric-lbl">1 Grand Master + 512 Kanal DMX</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-val tabular-num">197 Test</span>
+                <span class="metric-lbl">166 Unittest + 31 Pytest Teruji</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-val tabular-num">5 Profil</span>
+                <span class="metric-lbl">Fixture .zfx / .qxf Tervalidasi</span>
+              </div>
+            </div>
+            <div class="panel-foot">
+              <span>Firmware Node: ESP32 v5.2.0 (23.220 us period)</span>
+              <span class="tag-cyan">UDP :6454 Universe 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">ARSITEKTUR KONSOL</span>
+          <h2 class="section-title">Komputasi DSP Murni dan Keamanan Panggung Live</h2>
+          <p class="section-sub">
+            Dibangun dengan Python 3.15, PySide6 (Qt6), dan NumPy murni tanpa dependensi librosa atau scipy agar cold launch konsol tetap di bawah 500 ms.
+          </p>
+        </div>
+
+        <div class="cards-grid cols-3">
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-cyan">CORE DSP / MIR</span>
+              <span class="card-code tabular-num">22.050 Hz</span>
+            </div>
+            <h3>Ekstraksi 5 Fitur Akustik Real-Time</h3>
+            <p>
+              Menghitung RMS Energy (Parseval), Spectral Centroid, Chroma 12-Semitone (korelasi Pearson Major/Minor), MFCC 13 koefisien, dan Spectral Flux untuk menaksir tempo dan onset ketukan.
+            </p>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-amber">PHYSICAL RGBW</span>
+              <span class="card-code">W = min(R,G,B)</span>
+            </div>
+            <h3>Dekomposisi 4-Kanal Anti-Washout</h3>
+            <p>
+              Memisahkan komponen putih murni ke emitter White fisik pada fixture RGBW agar saturasi warna terjaga, serta melipat ulang kanal putih ke R/G/B pada fixture 3-kanal RGB seperti zzdree-36X.
+            </p>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-green">LIVE SAFETY</span>
+              <span class="card-code">PLAY-GATED</span>
+            </div>
+            <h3>Transmisi Terkunci &amp; Blackout Instan</h3>
+            <p>
+              Paket ArtDmx 530 byte hanya dipancarkan saat tombol PLAY aktif. Perintah Blackout (Esc / B) langsung menghentikan crossfade yang sedang berjalan dan mereset buffer 512 kanal.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulator" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">SIMULATOR INTERAKTIF</span>
+          <h2 class="section-title">Pipeline Russell 2D ke DMX512 di Browser</h2>
+          <p class="section-sub">
+            Uji langsung formula konversi <code>core/emotion_model.py</code> dan <code>core/color_engine.py</code> dengan 5 profil lampu dari <code>zz-fixture</code>.
+          </p>
+        </div>
+
+        <div class="console-shell">
+          <div class="console-bar">
+            <div class="console-bar-left">
+              <span class="console-brand">ZZLUXORA DECK SIM</span>
+              <span class="console-state" id="sim-artnet-badge">ART-NET STREAMING</span>
+            </div>
+            <div class="console-bar-right">
+              <div class="preset-group" role="group" aria-label="Preset Segmen Ibadah">
+                <button type="button" class="preset-btn active" data-preset="praise">Praise</button>
+                <button type="button" class="preset-btn" data-preset="worship">Worship</button>
+                <button type="button" class="preset-btn" data-preset="bridge">Bridge Build</button>
+                <button type="button" class="preset-btn" data-preset="altar">Warm Altar</button>
+              </div>
+              <button type="button" id="sim-play-btn" class="btn btn-success btn-sm" aria-pressed="true">PLAY: ON</button>
+              <button type="button" id="sim-blackout-btn" class="btn btn-danger btn-sm" aria-pressed="false">BLACKOUT</button>
+            </div>
+          </div>
+
+          <div class="console-body">
+            <div class="console-controls">
+              <div class="control-block">
+                <label class="control-label" for="sim-fixture">Profil Fixture (<code>zz-fixture</code>)</label>
+                <select id="sim-fixture" class="console-select">
+                  <option value="zzdree-36X">zzdree 36X (3CH RGB - Rig Aktif GIA)</option>
+                  <option value="Kumastb-STL47" selected>Kumastb STL47 (8CH RGBW - Bench Test)</option>
+                  <option value="Illumsolid-YSP01">Illumsolid YSP01 (8CH RGBW)</option>
+                  <option value="Alien-AL36">Alien AL36 (8CH RGB)</option>
+                  <option value="Wisdom-54X3">Wisdom 54X3 (8CH RGB)</option>
+                </select>
+              </div>
+
+              <div class="control-block">
+                <div class="slider-head">
+                  <label class="control-label" for="sim-valence">Valence (V: Minor / Major)</label>
+                  <span class="slider-val tabular-num" id="val-valence">+0.65</span>
+                </div>
+                <input id="sim-valence" type="range" min="-100" max="100" value="65" class="console-range">
+              </div>
+
+              <div class="control-block">
+                <div class="slider-head">
+                  <label class="control-label" for="sim-arousal">Arousal (A: Calm / Energetic)</label>
+                  <span class="slider-val tabular-num" id="val-arousal">+0.72</span>
+                </div>
+                <input id="sim-arousal" type="range" min="-100" max="100" value="72" class="console-range">
+              </div>
+
+              <div class="control-block">
+                <div class="slider-head">
+                  <label class="control-label" for="sim-rms">RMS Audio Energy</label>
+                  <span class="slider-val tabular-num" id="val-rms">82%</span>
+                </div>
+                <input id="sim-rms" type="range" min="0" max="100" value="82" class="console-range">
+              </div>
+
+              <div class="control-block">
+                <div class="slider-head">
+                  <label class="control-label" for="sim-master">Grand Master Dimmer</label>
+                  <span class="slider-val tabular-num" id="val-master">100%</span>
+                </div>
+                <input id="sim-master" type="range" min="0" max="100" value="100" class="console-range">
+              </div>
+
+              <div class="math-readout">
+                <div class="readout-row">
+                  <span>Kuadran Afektif</span>
+                  <strong id="out-quadrant" class="tabular-num">Q1 (Praise / Joyful)</strong>
+                </div>
+                <div class="readout-row">
+                  <span>HSV (H / S / V)</span>
+                  <strong id="out-hsv" class="tabular-num">48 deg / 69% / 82%</strong>
+                </div>
+                <div class="readout-row">
+                  <span>RGB -> RGBW</span>
+                  <strong id="out-rgbw" class="tabular-num">R:0 G:0 B:0 W:0</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="console-stage">
+              <div class="stage-top-grid">
+                <div class="plane-box">
+                  <div class="subpanel-head">
+                    <span>RUSSELL 2D PLANE</span>
+                    <span id="out-va-coord" class="tabular-num">(+0.65, +0.72)</span>
+                  </div>
+                  <div class="va-plane" id="va-plane" aria-label="Koordinat Valence-Arousal">
+                    <span class="va-axis-h" aria-hidden="true"></span>
+                    <span class="va-axis-v" aria-hidden="true"></span>
+                    <span class="va-q q1">Q1 PRAISE</span>
+                    <span class="va-q q2">Q2 TENSE</span>
+                    <span class="va-q q3">Q3 WORSHIP</span>
+                    <span class="va-q q4">Q4 CALM</span>
+                    <span class="va-cursor" id="va-cursor"></span>
+                  </div>
+                </div>
+
+                <div class="rig-box">
+                  <div class="subpanel-head">
+                    <span>STAGE RIG PREVIEW (4 UNIT PAR LED)</span>
+                    <span id="out-fixture-addr" class="tabular-num">DMX 001 / 017 / 033 / 049</span>
+                  </div>
+                  <div class="par-rig" id="par-rig">
+                    <div class="par-unit"><span class="par-lens"></span><span class="par-label tabular-num">UNIT 1 | 001</span></div>
+                    <div class="par-unit"><span class="par-lens"></span><span class="par-label tabular-num">UNIT 2 | 017</span></div>
+                    <div class="par-unit"><span class="par-lens"></span><span class="par-label tabular-num">UNIT 3 | 033</span></div>
+                    <div class="par-unit"><span class="par-lens"></span><span class="par-label tabular-num">UNIT 4 | 049</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dmx-strip-box">
+                <div class="subpanel-head">
+                  <span>OUTPUT KANAL DMX512 (UNIT 1 PAYLOAD)</span>
+                  <span id="out-channel-summary" class="tabular-num">8 CHANNELS</span>
+                </div>
+                <div class="dmx-channels" id="dmx-channels"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ecosystem" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">EKOSISTEM 4 REPOSITORI</span>
+          <h2 class="section-title">Dari Naskah Matematika ke Lampu Panggung Fisik</h2>
+          <p class="section-sub">
+            Keempat repositori di <code>D:\ANDREAS\PERSONAL</code> tetap terpisah sesuai batas lisensi dan disinkronkan lewat paritas checksum serta skrip verifikasi silang.
+          </p>
+        </div>
+
+        <div class="cards-grid cols-2">
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-green">SOFTWARE KONSOL</span>
+              <span class="card-code">Apache-2.0</span>
+            </div>
+            <h3>zzdevxx/zzluxora</h3>
+            <p>
+              Aplikasi desktop utama PySide6/Qt6 dan core engine NumPy STFT. Mencakup 6 workspace (Address, Analyze, Result, Perform, Page, Mixer 513 fader), visualizer 2D/3D, dan pemancar Art-Net 4.
+            </p>
+            <div class="card-meta-line tabular-num">Versi saat ini: v10.0.0 (+0.1 tiap rilis) | 197 unit test</div>
+            <div class="card-links">
+              <a href="https://github.com/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer" class="text-link">GitHub Source</a>
+              <a href="https://github.com/zzdevxx/zzluxora/releases" target="_blank" rel="noopener noreferrer" class="text-link">Releases</a>
+            </div>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-cyan">HARDWARE NODE</span>
+              <span class="card-code">Apache-2.0</span>
+            </div>
+            <h3>zzdevxx/esp32-artnet-dmx</h3>
+            <p>
+              Node konverter WiFi Art-Net 4 ke RS-485 DMX512 berbasis ESP32 Dual-Core FreeRTOS, MAX485, LCD 16x2 I2C, Captive Portal <code>zzlight.local</code>, dan flasher 1-klik.
+            </p>
+            <div class="card-meta-line tabular-num">Firmware v5.2.0 | Pacing 23.220 us (43.07 FPS nominal)</div>
+            <div class="card-links">
+              <a href="https://github.com/zzdevxx/esp32-artnet-dmx" target="_blank" rel="noopener noreferrer" class="text-link">GitHub Source</a>
+              <a href="https://github.com/zzdevxx/esp32-artnet-dmx/blob/main/firmware/artnet_dmx_final.ino" target="_blank" rel="noopener noreferrer" class="text-link">Firmware .ino</a>
+            </div>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-amber">FIXTURE PROFILES</span>
+              <span class="card-code">MIT</span>
+            </div>
+            <h3>zzdevxx/zz-fixture</h3>
+            <p>
+              Katalog definisi lampu panggung format QLC+ XML (<code>.qxf</code>) yang dipetakan ke format konsol <code>.zfx</code>: <code>zzdree-36X</code>, <code>Alien-AL36</code>, <code>Illumsolid-YSP01</code>, <code>Kumastb-STL47</code>, dan <code>Wisdom-54X3</code>.
+            </p>
+            <div class="card-meta-line tabular-num">5 definisi fixture terverifikasi QLC+ v4.14.4</div>
+            <div class="card-links">
+              <a href="https://github.com/zzdevxx/zz-fixture" target="_blank" rel="noopener noreferrer" class="text-link">GitHub Source</a>
+            </div>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-muted">RISET SKRIPSI</span>
+              <span class="card-code">Proprietary</span>
+            </div>
+            <h3>zzdevxx/zzluxora-thesis</h3>
+            <p>
+              Dokumentasi ilmiah Tugas Akhir S1 Teknik Komputer FT UNNES, pembuktian matematis STFT/HSV-RGBW, skrip black-box 24 kasus, dan salinan <code>artnet_projects/</code> berparitas SHA-256.
+            </p>
+            <div class="card-meta-line tabular-num">7 berkas firmware + 5 skema HD terverifikasi identik</div>
+            <div class="card-links">
+              <a href="https://github.com/zzdevxx/zzluxora-thesis" target="_blank" rel="noopener noreferrer" class="text-link">GitHub Repo</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">DISTRIBUSI RESMI</span>
+          <h2 class="section-title">Unduh ZZLUXORA &amp; Firmware Node</h2>
+          <p class="section-sub">
+            Setiap rilis konsol naik +0.1 dari v10.0 dan menyinkronkan metadata versi secara otomatis melalui <code>release_manifest.json</code>.
+          </p>
+        </div>
+
+        <div class="cards-grid cols-3">
+          <article class="deck-card card-featured">
+            <div class="card-top">
+              <span class="badge badge-green">INSTALLER WINDOWS 11</span>
+              <span id="dl-version-tag" class="card-code tabular-num">v10.0</span>
+            </div>
+            <h3>ZZLUXORA Desktop Setup (EXE)</h3>
+            <p>
+              Installer per-user tanpa hak administrator (AppData), sudah membundel Python runtime, PySide6, NumPy, SoundFile, FFmpeg statis, serta 5 profil fixture resmi.
+            </p>
+            <div class="download-meta">
+              <div id="dl-exe-name" class="tabular-num">Berkas: ZZLUXORA-Setup-10.0.0.exe</div>
+              <div id="dl-exe-size" class="tabular-num">Ukuran: menunggu aset rilis v10.0</div>
+              <div id="dl-release-date" class="tabular-num">Rilis: v10.0.0</div>
+            </div>
+            <a id="dl-installer-btn" href="https://github.com/zzdevxx/zzluxora/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-full">
+              Unduh Installer Terbaru
+            </a>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-cyan">ESP32 FIRMWARE</span>
+              <span class="card-code tabular-num">v5.2.0</span>
+            </div>
+            <h3>Art-Net DMX Node &amp; Flasher</h3>
+            <p>
+              Kode sumber Arduino C++, biner kompilasi, serta skrip flash otomatis (<code>tools/flash.bat</code>) untuk board ESP32 DevKit V1 + MAX485 + LCD 16x2 I2C.
+            </p>
+            <div class="download-meta">
+              <div class="tabular-num">SHA-256: 817c30a3ef651d6d...</div>
+              <div>Endpoint AP: 192.168.4.1 | zzlight.local</div>
+            </div>
+            <a href="https://github.com/zzdevxx/esp32-artnet-dmx" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-full">
+              Buka Repo Firmware ESP32
+            </a>
+          </article>
+
+          <article class="deck-card">
+            <div class="card-top">
+              <span class="badge badge-muted">SOURCE &amp; CLI</span>
+              <span class="card-code">Git</span>
+            </div>
+            <h3>Jalankan dari Source Python</h3>
+            <p>
+              Untuk pengembang atau pengujian CLI headless <code>python main.py --cli</code> dan runner suite 197 unit test.
+            </p>
+            <div class="code-copy-row">
+              <code>git clone https://github.com/zzdevxx/zzluxora.git</code>
+              <button type="button" class="btn-copy" data-copy="git clone https://github.com/zzdevxx/zzluxora.git">Salin</button>
+            </div>
+            <a href="https://github.com/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-full">
+              Lihat Dokumentasi Build
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="setup" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">PANDUAN OPERASIONAL</span>
+          <h2 class="section-title">Setup Panggung dalam 3 Langkah</h2>
+          <p class="section-sub">
+            Dirancang agar teknisi pencahayaan dapat menyambungkan konsol ke lampu DMX dalam hitungan menit.
+          </p>
+        </div>
+
+        <div class="cards-grid cols-3">
+          <article class="deck-card">
+            <span class="step-num tabular-num">01</span>
+            <h3>Install Konsol ZZLUXORA</h3>
+            <p>
+              Jalankan <code id="guide-exe-name">ZZLUXORA-Setup-10.0.0.exe</code>. Aplikasi terpasang ke folder pengguna tanpa prompt UAC dan langsung terbuka dalam kondisi bersih.
+            </p>
+          </article>
+
+          <article class="deck-card">
+            <span class="step-num tabular-num">02</span>
+            <h3>Hubungkan ke Node ESP32</h3>
+            <p>
+              Sambungkan laptop ke hotspot <code>ARTNET-DMX</code> (IP <code>192.168.4.1</code>) atau jaringan WiFi gereja (<code>zzlight.local</code>), lalu pilih target IP di jendela Setting.
+            </p>
+          </article>
+
+          <article class="deck-card">
+            <span class="step-num tabular-num">03</span>
+            <h3>Patch Fixture &amp; Aktifkan PLAY</h3>
+            <p>
+              Klik quick-patch 4x <code>zzdree-36X</code> di tab Address, muat audio di Analyze atau buka showfile <code>.zlx</code>, lalu tekan tombol PLAY untuk mulai mengirim DMX512.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">PERTANYAAN TEKNIS</span>
+          <h2 class="section-title">FAQ Operasional &amp; Kompatibilitas</h2>
+        </div>
+
+        <div class="faq-list">
+          <div class="faq-item">
+            <button type="button" class="faq-q" aria-expanded="false">
+              <span>Mengapa lampu tidak menyala sebelum tombol PLAY ditekan?</span>
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a">
+              <p>
+                Sesuai aturan keamanan panggung, ZZLUXORA menerapkan transmisi Play-Gated. Pergerakan fader saat PLAY nonaktif hanya mengubah tampilan antarmuka tanpa memancarkan paket Art-Net UDP ke rig lampu.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-q" aria-expanded="false">
+              <span>Apakah node ESP32 bekerja bersama QLC+ atau grandMA3?</span>
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a">
+              <p>
+                Ya. Firmware <code>esp32-artnet-dmx</code> mematuhi protokol standar Art-Net 4 (OpCode 0x5000, ArtPoll/ArtPollReply) pada UDP port 6454 Universe 0, sehingga kompatibel dengan ZZLUXORA, QLC+, Resolume, maupun grandMA onPC.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-q" aria-expanded="false">
+              <span>Di mana versi ZZLUXORA v7, v8, v8.5, dan v9 berada?</span>
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a">
+              <p>
+                Seluruh repositori versi lama (<code>zzluxora-v7</code> s.d. <code>zzluxora-v9</code>) tetap dipertahankan sebagai arsip historis di GitHub, GitLab, dan Codeberg. Pengembangan aktif kini berlanjut di <code>zzdevxx/zzluxora</code> dengan kenaikan +0.1 setiap rilis.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <strong>ZZLUXORA</strong>
+        <span>(C) 2026 Andreas Restuawanta Christwara (@zzdevxx). Apache License 2.0.</span>
+        <span class="footer-privacy-note">Portal statis tanpa akun atau pelacakan pengguna.</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://zzdree.my.id/">zzdree.my.id</a>
+        <a href="https://zzdree.my.id/banklycs/">Banklycs</a>
+        <a href="https://github.com/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://gitlab.com/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer">GitLab</a>
+        <a href="https://codeberg.org/zzdevxx/zzluxora" target="_blank" rel="noopener noreferrer">Codeberg</a>
+        <a href="https://zzdree.my.id/privacy">Privasi</a>
+        <a href="https://zzdree.my.id/terms">Ketentuan</a>
+        <a href="https://zzdree.my.id/data-deletion">Hapus Data</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script src="./app.js"></script>
+</body>
+</html>
