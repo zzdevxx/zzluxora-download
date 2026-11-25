@@ -1,0 +1,21 @@
+{
+  "app": "ZZLUXORA",
+  "tag": "v10.0",
+  "version": "10.0.0",
+  "increment_step": "+0.1",
+  "released_at": "2026-11-25T17:49:20Z",
+  "installer_name": "ZZLUXORA-Setup-10.0.0.exe",
+  "installer_size_bytes": 80539329,
+  "installer_size_mb": 76.8,
+  "installer_sha256": "c5a35679cef3dd260bf7416848f0cfa2c081f4efe07c57ea79e192fcf4397287",
+  "download_url": "https://github.com/zzdevxx/zzluxora/releases/download/v10.0/ZZLUXORA-Setup-10.0.0.exe",
+  "release_url": "https://github.com/zzdevxx/zzluxora/releases/tag/v10.0",
+  "portal_url": "https://zzdree.my.id/zzluxora/",
+  "ecosystem": {
+    "console": "https://github.com/zzdevxx/zzluxora",
+    "firmware": "https://gitlab.com/zzdevxx/esp32-artnet-dmx",
+    "fixtures": "https://github.com/zzdevxx/zz-fixture",
+    "thesis": "https://gitlab.com/zzdevxx/zzluxora-thesis",
+    "portal": "https://zzdree.my.id/zzluxora/"
+  }
+}

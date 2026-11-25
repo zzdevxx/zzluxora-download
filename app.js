@@ -318,10 +318,12 @@
       }
     };
 
-    const [manifest, release] = await Promise.all([
+    const [localManifest, remoteManifest, release] = await Promise.all([
+      fetchJson('./release_manifest.json'),
       fetchJson('https://raw.githubusercontent.com/zzdevxx/zzluxora/main/release_manifest.json'),
       fetchJson('https://api.github.com/repos/zzdevxx/zzluxora/releases/latest')
     ]);
+    const manifest = localManifest || remoteManifest;
 
     const badge = document.getElementById('hero-version-badge');
     const telVer = document.getElementById('telemetry-version');
@@ -338,8 +340,11 @@
       if (dlTag && manifest.tag) dlTag.textContent = manifest.tag;
       if (dlExeName && manifest.installer_name) dlExeName.textContent = `Berkas: ${manifest.installer_name}`;
       if (guideExe && manifest.installer_name) guideExe.textContent = manifest.installer_name;
-      if (dlExeSize && typeof manifest.installer_size === 'number' && manifest.installer_size > 0) {
-        const mb = (manifest.installer_size / 1_000_000).toFixed(1);
+      const sizeBytes = typeof manifest.installer_size_bytes === 'number'
+        ? manifest.installer_size_bytes
+        : manifest.installer_size;
+      if (dlExeSize && typeof sizeBytes === 'number' && sizeBytes > 0) {
+        const mb = (sizeBytes / (1024 * 1024)).toFixed(1);
         dlExeSize.textContent = `Ukuran: ${mb} MB (Setup)`;
       }
       if (dlDate && manifest.released_at) {
@@ -357,7 +362,7 @@
         if (dlExeName && exeAsset.name) dlExeName.textContent = `Berkas: ${exeAsset.name}`;
         if (guideExe && exeAsset.name) guideExe.textContent = exeAsset.name;
         if (dlExeSize && typeof exeAsset.size === 'number') {
-          dlExeSize.textContent = `Ukuran: ${(exeAsset.size / 1_000_000).toFixed(1)} MB (Setup)`;
+          dlExeSize.textContent = `Ukuran: ${(exeAsset.size / (1024 * 1024)).toFixed(1)} MB (Setup)`;
         }
         if (dlBtn && exeAsset.browser_download_url) dlBtn.href = exeAsset.browser_download_url;
       }
