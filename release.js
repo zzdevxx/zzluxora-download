@@ -25,11 +25,11 @@
       repo: 'zzdevxx/banklycs',
       apiUrl: 'https://api.github.com/repos/zzdevxx/banklycs/releases/latest',
       fallback: {
-        tag: 'v2.6',
-        version: '2.6.0',
-        asset: 'Banklycs-Setup-2.6.0.exe',
-        size: 144682926,
-        sha256: '5057f14544e8cc970530cfaeea73a6db939b5fb9bd0e2b837b552ed3d3098b30'
+        tag: 'v2.7',
+        version: '2.7.0',
+        asset: 'Banklycs-Setup-2.7.0.exe',
+        size: 39884985,
+        sha256: '95190137a3b50a3347c0c986d3eb148f608924ea4f78c703f280a81df4ed5159'
       },
       dbFallback: {
         tag: 'v2.6',

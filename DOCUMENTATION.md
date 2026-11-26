@@ -10,7 +10,9 @@
 - `app.js`:
   - Implementasi persis pipeline `EmotionModel` & `ColorEngine` (`atan2(A, V)` -> HSV -> sRGB -> Physical RGBW `W = min(R,G,B)`).
   - Pemetaan layout kanal DMX nyata dari 5 profil `zz-fixture` (`zzdree-36X`, `Alien-AL36`, `Illumsolid-YSP01`, `Kumastb-STL47`, `Wisdom-54X3`).
-  - Sinkronisasi progresif non-blocking ke `https://raw.githubusercontent.com/zzdevxx/zzluxora/main/release_manifest.json` dan GitHub API `/repos/zzdevxx/zzluxora/releases/latest` dengan fallback terverifikasi.
+  - Integrasi antarmuka simulator dengan kontrak metadata rilis di `release.js`.
+- `release.js`: Kontrak resolver metadata rilis dari GitHub Releases API (`/repos/zzdevxx/zzluxora/releases/latest`) dan endpoint checksum Worker (`https://zzdree.my.id/zzluxora/sha256`) dengan fallback snapshot `v10.1` terverifikasi.
+- `tests/`: Pengujian unit dan kontrak portal (`tests/portal.test.js`, `tests/release.test.js`) via `node --test tests/*.test.js`.
 
 ## Menjalankan Secara Lokal
 

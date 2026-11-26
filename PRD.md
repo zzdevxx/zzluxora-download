@@ -52,7 +52,7 @@ Portal tidak menggunakan database backend. Sinkronisasi rilis mengikuti skema `r
   "installer_size": 80544241,
   "installer_sha256": "03fdef2953395d1713a3b0c45b6d186b91342693981565dce67ad474611f3508",
   "download_url": "https://github.com/zzdevxx/zzluxora/releases/download/v10.1/ZZLUXORA-Setup-10.1.0.exe",
-  "released_at": "2026-11-25T21:54:51Z"
+  "released_at": "2026-11-25T23:01:01Z"
 }
 ```
 
