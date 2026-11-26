@@ -60,15 +60,67 @@
     };
   }
 
-  function parseChecksum(payload) {
+  function readTrimmedString(value) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  function isPositiveInteger(value) {
+    return Number.isInteger(value) && value > 0;
+  }
+
+  function selectChecksumAsset(payload, expectedAssetName) {
+    if (!Object.prototype.hasOwnProperty.call(payload, 'assets')) {
+      return payload.default && typeof payload.default === 'object' && !Array.isArray(payload.default)
+        ? payload.default
+        : null;
+    }
+    if (!Array.isArray(payload.assets)) return null;
+    const expected = readTrimmedString(expectedAssetName);
+    if (!expected) {
+      return payload.assets.length === 1 && payload.assets[0] && typeof payload.assets[0] === 'object' && !Array.isArray(payload.assets[0])
+        ? payload.assets[0]
+        : null;
+    }
+    const matches = payload.assets.filter((item) => item && typeof item === 'object' && !Array.isArray(item) && readTrimmedString(item.name) === expected);
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function parseChecksum(payload, expectedAssetName, expectedApp) {
     if (typeof payload === 'string') return { sha256: payload.trim() };
-    if (!payload || typeof payload !== 'object') return null;
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+
+    const workerShape = Object.prototype.hasOwnProperty.call(payload, 'app') ||
+      Object.prototype.hasOwnProperty.call(payload, 'assets') ||
+      Object.prototype.hasOwnProperty.call(payload, 'default');
+
+    if (workerShape) {
+      if (expectedApp) {
+        const actualApp = readTrimmedString(payload.app);
+        if (!actualApp || actualApp.toLowerCase() !== String(expectedApp).trim().toLowerCase()) return null;
+      }
+      const asset = selectChecksumAsset(payload, expectedAssetName);
+      if (!asset) return null;
+      const digest = asset.sha256 || asset.checksum || asset.digest;
+      if (typeof digest !== 'string' || (asset.size !== undefined && !isPositiveInteger(asset.size))) return null;
+      return {
+        sha256: digest.trim(),
+        tag: readTrimmedString(payload.tag || payload.release_tag || asset.tag),
+        name: readTrimmedString(asset.name || asset.asset || asset.asset_name),
+        size: isPositiveInteger(asset.size) ? asset.size : null,
+        app: readTrimmedString(payload.app),
+        source: readTrimmedString(payload.source)
+      };
+    }
+
     const digest = payload.sha256 || payload.checksum || payload.digest;
-    if (typeof digest !== 'string') return null;
+    if (typeof digest !== 'string' || (payload.size !== undefined && !isPositiveInteger(payload.size))) return null;
     return {
       sha256: digest.trim(),
-      tag: payload.tag || payload.release_tag || null,
-      name: payload.name || payload.asset || payload.asset_name || null
+      tag: readTrimmedString(payload.tag || payload.release_tag),
+      name: readTrimmedString(payload.name || payload.asset || payload.asset_name),
+      size: isPositiveInteger(payload.size) ? payload.size : null,
+      app: readTrimmedString(payload.app),
+      source: readTrimmedString(payload.source)
     };
   }
 
@@ -120,7 +172,7 @@
       return fallbackResult(projectKey, snapshot, 'Aset installer tidak ditemukan pada rilis GitHub. Snapshot publik terakhir disajikan.');
     }
 
-    const checksum = parseChecksum(checksumPayload);
+    const checksum = parseChecksum(checksumPayload, asset.name, project.slug);
     if (!checksum || !isSha256(checksum.sha256)) {
       return fallbackResult(projectKey, snapshot, 'Checksum tidak tersedia atau tidak valid. Snapshot publik terakhir disajikan.');
     }
@@ -131,6 +183,10 @@
 
     if (checksum.name && checksum.name !== asset.name) {
       return fallbackResult(projectKey, snapshot, 'Nama berkas pada checksum berbeda dengan aset GitHub. Snapshot publik terakhir disajikan.');
+    }
+
+    if (Number.isInteger(checksum.size) && checksum.size !== asset.size) {
+      return fallbackResult(projectKey, snapshot, 'Ukuran berkas pada checksum berbeda dengan aset GitHub. Snapshot publik terakhir disajikan.');
     }
 
     const urls = buildUrls(projectKey, tag, asset.name);

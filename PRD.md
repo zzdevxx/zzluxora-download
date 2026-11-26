@@ -35,7 +35,8 @@
 - **Interactive Stage Console Simulator (The Obsidian Control Deck)**:
   - Input kontrol Russell 2D Plane (`Valence` [-1..1], `Arousal` [-1..1], `RMS Energy` [0..1], `Master Dimmer` [0..1], serta quick-preset segmen Praise / Worship / Neutral / Strobe / Blackout).
   - Visualisasi langsung 4-unit PAR LED stage rig (`zzdree 36X` 3CH RGB, `Alien AL36` 8CH RGB, `Kumastb STL47` 8CH RGBW, `Illumsolid YSP01` 8CH RGBW, `Wisdom 54X3` 8CH RGB) lengkap dengan tabel kanal DMX512 byte-per-byte (`tabular-nums`).
-- **Ekosistem 4 Repo Terhubung**: Peta peran, hasil suite 206 test terkoleksi dengan 205 pass dan 1 skip, 43.07 FPS nominal DMX / 23220 us, 5 profil `.qxf`, 7 file firmware byte-identik SHA-256, dan tautan cepat ke 4 repo.
+- **Responsive Obsidian Control Deck**: Arah visual awal dipulihkan dengan sans biasa dan palet fungsional. Menu mobile berlabel `Menu` memakai `aria-expanded`, menutup saat Escape, tautan dipilih, klik di luar header, atau viewport kembali ke desktop. Target interaktif minimal 44 px dan checksum panjang dibungkus.
+- **Ekosistem 4 Repo Terhubung**: Peta peran konsol, firmware node, profil fixture, dan riset, profil `.qxf` bawaan, serta tautan cepat ke 4 repo. Portal tidak menampilkan angka hasil pengukuran atau jumlah test yang tidak diverifikasi di halaman ini.
 - **Panduan Instalasi & Setup Art-Net**: 3 langkah instalasi Windows (`ZZLUXORA-Setup-10.1.0.exe`, per-user tanpa UAC) dan alur koneksi ke node `esp32-artnet-dmx` (`ARTNET-DMX` AP / `zzlight.local` / UDP `6454`).
 - **Legal & Privacy Trio**: Portal murni statis tanpa akun/cookie pelacak/pengumpulan data; footer & halaman hukum terhubung langsung ke `/privacy`, `/terms`, dan `/data-deletion` di hub `zzdree.my.id` (mematuhi UU PDP No. 27/2022 & GDPR Art. 17).
 

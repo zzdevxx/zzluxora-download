@@ -318,6 +318,46 @@
     return false;
   }
 
+  function setupNav() {
+    const header = document.querySelector('.site-header');
+    const toggle = document.getElementById('nav-toggle');
+    const nav = document.getElementById('site-nav');
+    if (!header || !toggle || !nav) return;
+
+    const setOpen = (open) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+      toggle.classList.toggle('is-open', open);
+      nav.classList.toggle('is-open', open);
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    nav.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => setOpen(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || toggle.getAttribute('aria-expanded') !== 'true') return;
+      setOpen(false);
+      toggle.focus();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (toggle.getAttribute('aria-expanded') === 'true' && !header.contains(event.target)) {
+        setOpen(false);
+      }
+    });
+
+    const wideNav = window.matchMedia('(min-width: 1121px)');
+    wideNav.addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+    header.dataset.navReady = 'true';
+  }
+
   function setupEvents() {
     if (el.fixture) {
       el.fixture.addEventListener('change', (event) => {
@@ -458,6 +498,7 @@
   }
 
   function init() {
+    setupNav();
     setupEvents();
     render();
     initRelease();

@@ -2,8 +2,15 @@
   "style": {
     "slug": "ruled-foundry",
     "name": "Ruled Foundry",
-    "updated_at": "2026-11-26T04:30:00+07:00"
+    "updated_at": "2026-11-26T10:57:37+07:00"
   },
   "dna": null,
-  "updated_at": "2026-11-26T04:30:00+07:00"
+  "design_override": {
+    "slug": "obsidian-control-deck",
+    "name": "Obsidian Control Deck, restored by owner direction",
+    "source": "owner direction 2026-11-26",
+    "note": "Initial Obsidian Control Deck appearance overrides ruled-foundry catalog appearance. Keep only mechanics: crisp 1px borders, 44px targets, five states, and contrast. Do not adopt blue, paper, or Archivo styling.",
+    "updated_at": "2026-11-26T10:02:12+07:00"
+  },
+  "updated_at": "2026-11-26T10:57:37+07:00"
 }
